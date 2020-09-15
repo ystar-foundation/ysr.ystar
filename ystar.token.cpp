@@ -37,6 +37,7 @@ void ystartoken::create( const name& issuer, const name& ruler, const name& bigs
 
 void ystartoken::issue( const name& to, const asset& quantity, const string& memo )
 {
+   check( is_account( to ), "to account does not exist");
    auto sym = quantity.symbol;
    check( sym.is_valid(), "invalid symbol" );
    check( memo.size() <= 256, "memo has more than 256 bytes" );
@@ -103,11 +104,37 @@ void ystartoken::close( const name& acc, const asset& value )
    del_acnts.erase( delacc );
 }
 
+void ystartoken::yrctransfer( const name&    from,
+                              const name&    to,
+                              const asset&   quantity,
+                              bool bcreate,
+                              const string&  memo )
+{
+    check( from != to, "cannot transfer to self" );
+    require_auth( from );
+    check( is_account( to ), "to account does not exist");
+    auto sym = quantity.symbol;
+    check( sym.is_valid(), "invalid symbol when transfer" );
+    stats statstable( get_self(), sym.code().raw() );
+    const auto& st = statstable.get( sym.code().raw(), "token is not existed." );
+
+    require_recipient( from );
+    require_recipient( to );
+
+    check( quantity.is_valid(), "invalid quantity" );
+    check( quantity.amount > 0, "must transfer positive quantity" );
+    check( quantity.symbol == st.supply.symbol, "symbol or precision mismatch" );
+    check( memo.size() <= 256, "memo has more than 256 bytes" );
+
+    sub_balance( from, quantity );
+    add_balance( to.value, sym.code().raw(), quantity, from, bcreate );
+}
+
 void ystartoken::transfer( const name&    from,
-                         const name&    to,
-                         const asset&   quantity,
-                         bool bcreate,
-                         const string&  memo )
+                           const name&    to,
+                           const asset&   quantity,
+                           bool bcreate,
+                           const string&  memo )
 {
     check( from != to, "cannot transfer to self" );
     require_auth( from );
@@ -319,7 +346,7 @@ void ystartoken::locktransfer(uint32_t lockruleid, const name& from, const name&
    lockrules _lockrule( get_self(), sym.code().raw() );
    const auto& itrule = _lockrule.get( lockruleid, "lockruleid not existed in rule table" );
 
-   transfer( from, to, quantity, true, memo );
+   yrctransfer( from, to, quantity, true, memo );
 
    stats statstable( get_self(), sym.code().raw() );
    const auto& st = statstable.get( sym.code().raw(), "token is not existed" );

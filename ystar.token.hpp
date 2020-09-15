@@ -109,6 +109,23 @@ class [[eosio::contract("ystar.token")]] ystartoken : public contract {
                      const string&  memo );
 
       /**
+       * Allows `from` account to transfer to `to` account the `quantity` tokens.
+       * One account is debited and the other is credited with quantity tokens.
+       *
+       * @param from - transfer from which account,
+       * @param to - transfer to which account,
+       * @param quantity - the quantity of tokens to be transferred,
+       * @param bcreate - create acc or not,
+       * @param memo - the memo string to accompany the transaction.
+       */
+      [[eosio::action]]
+      void yrctransfer( const name&    from,
+                     const name&    to,
+                     const asset&   quantity,
+                     bool bcreate,
+                     const string&  memo );
+
+      /**
        * This action will freeze an account.
        *
        * @param acc - the account to be frozen,
@@ -233,6 +250,7 @@ class [[eosio::contract("ystar.token")]] ystartoken : public contract {
       using setextime_action = eosio::action_wrapper<"setextime"_n, &ystartoken::setextime>;
       using open_action = eosio::action_wrapper<"open"_n, &ystartoken::open>;
       using close_action = eosio::action_wrapper<"close"_n, &ystartoken::close>;
+      using yrctransfer_action = eosio::action_wrapper<"yrctransfer"_n, &ystartoken::yrctransfer>;
       using transfer_action = eosio::action_wrapper<"transfer"_n, &ystartoken::transfer>;
       using freezeacc_action = eosio::action_wrapper<"freezeacc"_n, &ystartoken::freezeacc>;
       using unfreezeacc_action = eosio::action_wrapper<"unfreezeacc"_n, &ystartoken::unfreezeacc>;
